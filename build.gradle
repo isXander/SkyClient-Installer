@@ -29,3 +29,5 @@ jar {
         attributes 'Main-Class': 'co.uk.isxander.skyclient.installer.start.Main'
     }
 }
+
+jar.dependsOn shadowJar

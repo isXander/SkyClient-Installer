@@ -37,4 +37,8 @@ public class FileUtils {
         return null;
     }
 
+    public static String removeFileExtension(String name) {
+        return name.substring(0, name.lastIndexOf('.'));
+    }
+
 }

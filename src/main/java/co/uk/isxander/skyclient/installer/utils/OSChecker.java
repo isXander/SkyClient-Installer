@@ -3,7 +3,7 @@ package co.uk.isxander.skyclient.installer.utils;
 public class OSChecker {
 
     public enum OSType {
-        Windows, MacOS, Linux, Other
+        WINDOWS, OS_X, LINUX, UNKNOWN
     };
 
     protected static OSType detectedOS;
@@ -12,13 +12,13 @@ public class OSChecker {
         if (detectedOS == null) {
             String OS = System.getProperty("os.name", "generic").toLowerCase();
             if ((OS.contains("mac")) || (OS.contains("darwin"))) {
-                detectedOS = OSType.MacOS;
+                detectedOS = OSType.OS_X;
             } else if (OS.contains("win")) {
-                detectedOS = OSType.Windows;
+                detectedOS = OSType.WINDOWS;
             } else if (OS.contains("nux")) {
-                detectedOS = OSType.Linux;
+                detectedOS = OSType.LINUX;
             } else {
-                detectedOS = OSType.Other;
+                detectedOS = OSType.UNKNOWN;
             }
         }
         return detectedOS;

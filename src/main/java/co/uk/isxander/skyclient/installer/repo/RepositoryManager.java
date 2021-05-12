@@ -1,27 +1,16 @@
 package co.uk.isxander.skyclient.installer.repo;
 
-import co.uk.isxander.skyclient.installer.SkyClient;
-import co.uk.isxander.skyclient.installer.repo.entry.EntryAction;
-import co.uk.isxander.skyclient.installer.repo.entry.EntryWarning;
-import co.uk.isxander.skyclient.installer.repo.entry.ModEntry;
-import co.uk.isxander.skyclient.installer.repo.entry.PackEntry;
-import co.uk.isxander.skyclient.installer.utils.FileUtils;
-import co.uk.isxander.skyclient.installer.utils.UpdateHook;
-import co.uk.isxander.xanderlib.utils.HttpsUtils;
-import co.uk.isxander.xanderlib.utils.Multithreading;
+import co.uk.isxander.skyclient.installer.repo.entry.*;
+import co.uk.isxander.skyclient.installer.utils.*;
+import co.uk.isxander.xanderlib.utils.*;
 import co.uk.isxander.xanderlib.utils.json.BetterJsonObject;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class RepositoryManager {
@@ -31,11 +20,12 @@ public class RepositoryManager {
     public static final String ICONS_DIR_URL = "https://raw.githubusercontent.com/nacrt/SkyblockClient-REPO/main/files/icons/";
     public static final String MC_DIR_URL = "https://raw.githubusercontent.com/nacrt/SkyblockClient-REPO/main/files/mcdir/";
 
+    public static final String FORGE_VERSION_JSON = "https://raw.githubusercontent.com/nacrt/SkyblockClient-REPO/main/files/forge/1.8.9-forge1.8.9-11.15.1.2318-1.8.9.json";
+    public static final String FORGE_VERSION_JAR = "https://raw.githubusercontent.com/nacrt/SkyblockClient-REPO/main/files/forge/forge-1.8.9-11.15.1.2318-1.8.9.jar";
+
     public static final File CACHE_FOLDER = new File(new File(System.getProperty("user.home")), ".skyclient/");
     public static final long CACHE_TIME = TimeUnit.DAYS.toMillis(1);
-
-    private JsonArray mods;
-    private JsonArray packs;
+    public static final File ICON_FOLDER = new File(CACHE_FOLDER, "icons");
 
     private final List<ModEntry> modEntries;
     private final List<PackEntry> packEntries;
@@ -56,7 +46,7 @@ public class RepositoryManager {
         }
     }
 
-    public void fetchFiles(UpdateHook hook) {
+    public void fetchFiles() {
         // check if we need to refresh icons and stuff
         boolean refresh = shouldRefreshCache();
         if (refresh) {
@@ -66,14 +56,14 @@ public class RepositoryManager {
         }
 
         // get json from web
-        mods = JsonParser.parseString(HttpsUtils.getString(MODS_JSON_URL)).getAsJsonArray();
-        packs = JsonParser.parseString(HttpsUtils.getString(PACKS_JSON_URL)).getAsJsonArray();
+        JsonArray modsArr = JsonParser.parseString(HttpsUtils.getString(MODS_JSON_URL)).getAsJsonArray();
+        JsonArray packsArr = JsonParser.parseString(HttpsUtils.getString(PACKS_JSON_URL)).getAsJsonArray();
 
         // Loop thru every element in the array
-        for (JsonElement element : mods) {
+        for (JsonElement element : modsArr) {
             // Check if element is an object so we don't run into any weird errors
             if (!element.isJsonObject()) {
-                SkyClient.LOGGER.warning("Mods JSON included non-json-object.");
+                Log.warn("Mods JSON included non-json-object.");
                 continue;
             }
 
@@ -94,7 +84,7 @@ public class RepositoryManager {
 
             // find all required mods and add them to array
             String[] mods = new String[0];
-            if (modJson.has("mods")) {
+            if (modJson.has("packages")) {
                 JsonArray modArray = modJson.get("mods").getAsJsonArray();
                 mods = new String[modArray.size()];
                 int i = 0;
@@ -127,7 +117,6 @@ public class RepositoryManager {
                         // do later
                     } else {
                         actionList.add(new EntryAction(
-                                actionObj.optString("icon"),
                                 actionObj.optString("text"),
                                 actionObj.optString("creator"),
                                 actionObj.optString("link")
@@ -168,10 +157,10 @@ public class RepositoryManager {
         }
 
         // loop thru the pack array
-        for (JsonElement element : packs) {
+        for (JsonElement element : packsArr) {
             // check if element is object so we dont run into any weird errors
             if (!element.isJsonObject()) {
-                SkyClient.LOGGER.warning("Packs JSON included non-json-object.");
+                Log.warn("Packs JSON included non-json-object.");
                 continue;
             }
 
@@ -189,7 +178,6 @@ public class RepositoryManager {
                         // do later
                     } else {
                         actionList.add(new EntryAction(
-                                actionObj.optString("icon"),
                                 actionObj.optString("text"),
                                 actionObj.optString("creator"),
                                 actionObj.optString("link")
@@ -225,40 +213,53 @@ public class RepositoryManager {
                     packJson.optBoolean("hidden", false)
             ));
         }
+    }
+
+    public void getIcons(UpdateHook hook) {
+        boolean refresh = shouldRefreshCache();
 
         // add to another thread to prevent the program from freezing
         Multithreading.runAsync(() -> {
+            if (!ICON_FOLDER.exists())
+                ICON_FOLDER.mkdirs();
+
             // loop through all the mod entries we just made and download the icons from it
             // do this after so we can have a list of all the mods as that is important
             // then get the images async
             for (ModEntry mod : modEntries) {
+                if (mod.isHidden()) continue;
+
                 String iconFileName = mod.getIconFile();
                 try {
                     // e.g. C:\Users\Xander\.skyclient\icons\neu.png
-                    File iconFile = new File(CACHE_FOLDER, "icons/" + iconFileName);
+                    File iconFile = new File(ICON_FOLDER, iconFileName);
                     // If the icon doesn't already exist or the cache has expired
                     if (!iconFile.exists() || refresh) {
-                        HttpsUtils.downloadFile(ICONS_DIR_URL + iconFileName, iconFile);
+                        String url = ICONS_DIR_URL + iconFileName;
+                        Log.info("Downloading icon: " + url + " -> " + iconFile.getAbsolutePath());
+                        HttpsUtils.downloadFile(url, iconFile);
                     }
-                    imageCache.putIfAbsent(iconFileName, ImageIO.read(iconFile));
+                    Log.info("Reading Image: " + iconFile.getPath());
+                    imageCache.put(iconFileName, ImageIO.read(iconFile));
+
+                    // this can be used to notify the gui that it needs to update
+                    // the icon of a specified element. this reduces the work that needs to be done
+                    hook.updateMod(mod);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    continue;
                 }
-
-                // this can be used to notify the gui that it needs to update
-                // the icon of a specified element. this reduces the work that needs to be done
-                hook.updateMod(mod);
             }
 
             for (PackEntry pack : packEntries) {
+                if (pack.isHidden()) continue;
+
                 String iconFileName = pack.getIconFile();
                 try {
-                    File iconFile = new File(CACHE_FOLDER, "icons/" + iconFileName);
+                    File iconFile = new File(ICON_FOLDER, iconFileName);
                     if (!iconFile.exists() || refresh) {
                         HttpsUtils.downloadFile(ICONS_DIR_URL + iconFileName, iconFile);
                     }
-                    imageCache.putIfAbsent(iconFileName, ImageIO.read(iconFile));
+                    imageCache.put(iconFileName, ImageIO.read(iconFile));
                 } catch (IOException e) {
                     e.printStackTrace();
                     continue;
@@ -267,6 +268,22 @@ public class RepositoryManager {
                 hook.updatePack(pack);
             }
         });
+    }
+
+    public ModEntry getMod(String id) {
+        for (ModEntry mod : modEntries) {
+            if (mod.getId().equalsIgnoreCase(id)) return mod;
+        }
+
+        return null;
+    }
+
+    public PackEntry getPack(String id) {
+        for (PackEntry pack : packEntries) {
+            if (pack.getId().equalsIgnoreCase(id)) return pack;
+        }
+
+        return null;
     }
 
     public BufferedImage getImage(String fileName) {

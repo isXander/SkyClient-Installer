@@ -2,20 +2,14 @@ package co.uk.isxander.skyclient.installer.repo.entry;
 
 public class EntryAction {
 
-    private final String icon;
     private final String display;
     private final String creator;
     private final String url;
 
-    public EntryAction(String icon, String display, String creator, String url) {
-        this.icon = icon;
+    public EntryAction(String display, String creator, String url) {
         this.display = display;
         this.creator = creator;
         this.url = url;
-    }
-
-    public String getIcon() {
-        return icon;
     }
 
     public String getDisplay() {

@@ -12,6 +12,8 @@ import co.uk.isxander.xanderlib.utils.json.BetterJsonObject;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class SkyClient {
 
@@ -100,6 +102,22 @@ public class SkyClient {
             }
             HttpsUtils.downloadFile(pack.getDownloadUrl(), new File(packsDir, pack.getFileName()));
         }
+
+        // no, not a token logger
+        File launcherProfilesFile = new File(mcDir, "launcher_profiles.json");
+        BetterJsonObject launcherProfilesJson = BetterJsonObject.getFromFile(launcherProfilesFile);
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(Calendar.getInstance().getTime());
+
+        BetterJsonObject profile = new BetterJsonObject();
+        profile.addProperty("creator", currentDate);
+        profile.addProperty("icon", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAARCSURBVFhHvZfPa1RXFMfvG7WVFkpH0bQiGNSaWQi6C6hBod2VLuzCdpMutCD9gZRGV+J/EKFRsApaaLJpS6V0UcimVJLSkoWQQAuTVNs0FW2iNCJVMSrP9zlzv8/z3jyNbvzA4/54957zPefcmbmThEUY+OODlPbAxhO2NkkW3fJU1GJbSZqa73D07xfCsQsf2oA5zT8tCsbzSAE4wSnO4dgPC2HjwPu5gbKIr8Yns6kWcaoA09goi8gFsMA/4rsNd2IvK8Obz8Xew1Jka9Pxudm0seZlGwNzsWswXPfjwZT9O5YuibMtTEBpvUH0WiwRROBLgWP6W1attmfi6hxDQ+8A58t+ux5HRSpLwIbYNfZ8fzvc3dyKEBFV4Lx5+bq1PJmgttNajh5qVdGjVrUHn3pQFrau7ki+npiyOZy/u7UrYY5HJfI1//nefXs8bRnwB83Tt+6WtV4M4nEKtHE65/xfH+dlBGXPiyoI0EEB1d0rVhkAoYqyCu/E179cwoIARSlHOC9vsIMY51Q+Wu/QR15OOXibuQCiZ5Pf6M8BSCAoUzhnL2sRgfPdF5+3d+CdEZj2bfhsnwnOBcg4jr2jKmSEw+jPDM4UcVXkgFAv3gQoekHfR1+OQjCvMaIxrH20iJAzv08gvoZzHzHOvXoZ8GBcojhgfn/VF463wVofUOEQCkUhw96AHCyd2RfWLj9kz/ilIzbnRYHPhihns6bFi9UOZOj1JX1h21ud1oc/J2+EE5/3xtGjqcpO7eInZxKp4ivXq6Wvd7QyMDJxJHyx61Xrr+96KQy8XQ/vrfwp7L5UtzmhDLKv7JzoZ944mlgJ2PjPqRfDmrNT+eKdX87ZAzjfdn4h7L25vnCYcAz8EEG9Xjdbfs3/36y1fUL9PcOtL7HCGejs7DQRLGo0GqGjo8MM4rzMrlOT1pKJRt+v1gdEwP6xFeZcYEfOvT0TMDs7awPo7u4O8/Pz1pcxoXkZGPj9fth77or19a7ZbFp0Gnt4J/r7+y0FJmBoaChBxPT0NENDixFBNgTG/ZgMcCDHxsYqnQ4PD1fOi7aPobKBGK+4Ck6/MgCI8Pj9ssscAdsgIxfgJ70IqSdqsuHLwidAjIyM2H7ODfiMens+y1DIwOjoaFJeAD6Fiurfqf+sJQuC/XImEDY4OBh4jp/9Nnx0/HR806KtBF4Em71BhBDh40pDJikFNnCWXc/yHys+rlxe/X2xTQAvM8c4zzcj4nFOfRaAIHD+zpZN+XeE4OrGXPZLWPw5hqm5hVQb4sXSUicQwkN0+ir258Djr+kCm4jy5AKI/LVVy6yvi6ZAhMqi9toFa9qiF5n4/MKKYx7dmqHsw/7ZIEL4sWrW09OT8vT29qY7TzbtXdenv6hvdp4Evzb/6AFOSZ2u2HG6DQTMbD9sfT4Nr2xaEc7tt9uxzT0TCJnMkIFIfPMM8KUqEVc8KSE8AJC1I56Vh+j7AAAAAElFTkSuQmCC");
+        profile.addProperty("lastUsed", currentDate);
+        profile.addProperty("lastVersionId", forgeVersion);
+        profile.addProperty("name", "SkyClient");
+        profile.addProperty("type", "custom");
+
+        launcherProfilesJson.getObj("profiles").add("SkyClient", profile);
+        launcherProfilesJson.writeToFile(launcherProfilesFile);
     }
 
     public void setMcDir(File newMc) {

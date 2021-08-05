@@ -1,6 +1,5 @@
 package dev.isxander.skyclient.installer.repo;
 
-import dev.isxander.skyclient.installer.gui.MainGui;
 import dev.isxander.skyclient.installer.repo.entry.EntryAction;
 import dev.isxander.skyclient.installer.repo.entry.EntryWarning;
 import dev.isxander.skyclient.installer.repo.entry.ModEntry;
@@ -49,7 +48,7 @@ public class RepositoryManager {
         this.imageCache = new HashMap<>();
 
         try {
-            this.unknownImage = ImageIO.read(RepositoryManager.class.getResourceAsStream("/unknown.png"));
+            this.unknownImage = ImageIO.read(RepositoryManager.class.getResourceAsStream("/skyclient.png"));
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalStateException("Could not read unknown image.");

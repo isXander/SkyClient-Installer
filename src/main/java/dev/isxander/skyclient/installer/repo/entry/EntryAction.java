@@ -1,15 +1,15 @@
-package co.uk.isxander.skyclient.installer.repo.entry;
+package dev.isxander.skyclient.installer.repo.entry;
 
 public class EntryAction {
 
     private final String display;
     private final String creator;
-    private final String url;
+    private final Runnable action;
 
-    public EntryAction(String display, String creator, String url) {
+    public EntryAction(String display, String creator, Runnable action) {
         this.display = display;
         this.creator = creator;
-        this.url = url;
+        this.action = action;
     }
 
     public String getDisplay() {
@@ -20,7 +20,7 @@ public class EntryAction {
         return creator;
     }
 
-    public String getUrl() {
-        return url;
+    public Runnable getAction() {
+        return action;
     }
 }

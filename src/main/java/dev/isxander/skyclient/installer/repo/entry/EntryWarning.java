@@ -1,4 +1,4 @@
-package co.uk.isxander.skyclient.installer.repo.entry;
+package dev.isxander.skyclient.installer.repo.entry;
 
 import java.util.Arrays;
 import java.util.List;

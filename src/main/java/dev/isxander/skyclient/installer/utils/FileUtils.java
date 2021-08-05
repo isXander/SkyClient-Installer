@@ -1,11 +1,10 @@
-package co.uk.isxander.skyclient.installer.utils;
+package dev.isxander.skyclient.installer.utils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 
@@ -35,6 +34,16 @@ public class FileUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
     }
 
     public static String removeFileExtension(String name) {
